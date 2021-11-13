@@ -1,6 +1,6 @@
 """
 This file contains just the game class, that can be instantiated with a window object.
-All code related to the game of life in contained here.
+All code related to the game of life is contained here.
 """
 
 import pygame
@@ -58,8 +58,6 @@ class Game:
         with open("config.json", "r") as f:
             data = json.load(f)
 
-        self.x = data["field-dimensions"]["x"]
-        self.y = data["field-dimensions"]["y"]
         self.w = data["field-dimensions"]["w"]
         self.h = data["field-dimensions"]["h"]
         self.game_speed = data["game-speed"]
@@ -72,6 +70,9 @@ class Game:
         self.color_cell_alive = data["colors"]["color-cell-alive"]
         self.color_cell_dead = data["colors"]["color-cell-dead"]
         self.color_grid = data["colors"]["color-grid"]
+        self.color_buttons = data["colors"]["color-buttons"]
+        self.color_buttons_border = data["colors"]["color-buttons-border"]
+        self.color_text = data["colors"]["color-text"]
 
         # Calculate the cell-width in pixels, necessary in rendering the map
         self.cw = self.window.width // self.w
@@ -85,8 +86,6 @@ class Game:
 
         data = {
             "field-dimensions": {
-                "x": self.x,
-                "y": self.y,
                 "w": self.w,
                 "h": self.h
             },
@@ -100,7 +99,10 @@ class Game:
                 "color-bg": self.color_bg,
                 "color-cell-alive": self.color_cell_alive,
                 "color-cell-dead": self.color_cell_dead,
-                "color-grid": self.color_grid
+                "color-grid": self.color_grid,
+                "color-buttons": self.color_buttons,
+                "color-buttons-border": self.color_buttons_border,
+                "color-text": self.color_text
             }
         }
 
