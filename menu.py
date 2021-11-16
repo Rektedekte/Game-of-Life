@@ -4,7 +4,9 @@ This file contains the menu UI. Just like Game it borrows a window object.
 
 import pygame
 import json
+
 from game import Game
+import fonts
 
 
 class Menu:
@@ -23,9 +25,6 @@ class Menu:
 
         # Create the grid surface used in rendering the menu
         self.create_grid()
-
-        # Initialize the font to be used
-        self.font = pygame.font.Font(None, 50)
 
         # Calculate the middle of the screen
         self.middle_x = self.window.width // 2
@@ -95,7 +94,7 @@ class Menu:
         pygame.draw.rect(self.window.window, self.color_buttons_border, self.button_rect, 2, 10)
 
         # Create the text surface, position and render it
-        text_surf = self.font.render("Play", True, self.color_text)
+        text_surf = fonts.main.render("Play", True, self.color_text)
         text_rect = text_surf.get_rect(center=(self.middle_x, self.middle_y))
         self.window.blit(text_surf, text_rect)
 
