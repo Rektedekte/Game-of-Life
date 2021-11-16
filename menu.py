@@ -7,6 +7,7 @@ import json
 
 from game import Game
 import fonts
+from ui_elements import Button
 
 
 class Menu:
@@ -26,13 +27,17 @@ class Menu:
         # Create the grid surface used in rendering the menu
         self.create_grid()
 
-        # Calculate the middle of the screen
-        self.middle_x = self.window.width // 2
-        self.middle_y = self.window.height // 2
-
-        # Define the buttons dimensions and position
-        self.button_rect = pygame.Rect(0, 0, 300, 120)
-        self.button_rect.midtop = (self.middle_x, self.middle_y - 60)
+        # Initialize the custom button, derived from a pygame.Rect
+        self.button = Button(
+            "Play",
+            fonts.main,
+            self.color_buttons,
+            self.play,
+            (self.window.width // 2, self.window.height // 2, 300, 120),
+            True,
+            text_color=self.color_text,
+            border_color=self.color_buttons_border
+        )
 
     # noinspection PyAttributeOutsideInit
     def load_config(self):
@@ -89,17 +94,24 @@ class Menu:
         # Draw the grid on the screen
         self.window.blit(self.grid, (0, 0))
 
-        # Draw the button and it's border with rounded corners
-        pygame.draw.rect(self.window.window, self.color_buttons, self.button_rect, 0, 10)
-        pygame.draw.rect(self.window.window, self.color_buttons_border, self.button_rect, 2, 10)
-
-        # Create the text surface, position and render it
-        text_surf = fonts.main.render("Play", True, self.color_text)
-        text_rect = text_surf.get_rect(center=(self.middle_x, self.middle_y))
-        self.window.blit(text_surf, text_rect)
+        self.button.render(self.window.window)
 
         # Update the entire scene, as this is a close to one-time call
         self.window.update()
+
+    def play(self):
+        """
+        The callback function for the "play" button.
+        :return: None
+        """
+
+        # Initialize, run and delete the game object
+        game = Game(self.window)
+        game.run()
+        del game
+
+        # Render the scene once again, to overwrite the games rendering
+        self.render()
 
     def run(self):
         """
@@ -126,13 +138,9 @@ class Menu:
                         x, y = pygame.mouse.get_pos()
 
                         # Check if the cursor collides with the button
-                        if self.button_rect.collidepoint(x, y):
-                            # Start the game, discard it afterwards
-                            game = Game(self.window)
-                            game.run()
-                            del game
-
-                            # Re-render the menu after game has used the window
-                            self.render()
+                        if self.button.collidepoint(x, y):
+                            # Call the buttons callback
+                            # I would like to have the callbacks handled differently, but couldn't come up with anything
+                            self.button.callback()
 
             self.clock.tick(60)

@@ -5,5 +5,8 @@ It can be viewed like an oop container class, just without the class.
 
 import pygame
 
+# Initialize the font module
+pygame.font.init()
+
 # This is the main font to be used in ui elements
 main = pygame.font.Font(None, 50)
