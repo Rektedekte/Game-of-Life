@@ -1,5 +1,5 @@
 import pygame
-from typing import Union, Tuple
+from typing import Tuple
 
 
 class Button(pygame.Rect):
@@ -141,12 +141,19 @@ class InputBox(pygame.Rect):
             self.center = (self.x, self.y)
 
     def check(self):
+        """
+        This function chooses the correct checker, then returns the result
+        :return: The validity as a bool
+        """
+
         return InputBox.checks[self.content_type](self)
 
-    def check_str(self):
-        return True
-
     def check_int(self):
+        """
+        Check whether the text content is valid for int type
+        :return: The validity as a bool
+        """
+
         try:
             int(self.text)
         except ValueError:
@@ -155,6 +162,11 @@ class InputBox(pygame.Rect):
         return True
 
     def check_float(self):
+        """
+        Check whether the text content is valid for float type
+        :return: The validity as a bool
+        """
+
         try:
             float(self.text)
         except ValueError:
@@ -162,25 +174,39 @@ class InputBox(pygame.Rect):
 
         return True
 
+    # A dict used to jump to the correct checker, can be expanded
     checks = {
-        str: check_str,
+        str: lambda self: True,
         int: check_int,
         float: check_float
     }
 
     def send_keys(self, *keys):
+        """
+        This function takes *args of keys, and interprets them, changing the text based on it.
+        :param keys: A packed tuple of key inputs to interpret
+        :return: None
+        """
+
+        # Iterate through the keys given
         for key in keys:
+            # If the used has pressed backspace
             if key == pygame.K_BACKSPACE:
                 if self.text:
                     self.text = self.text[:-1]
 
+            # I the input is a string
             elif isinstance(key, str):
+                # Store the original temporarily
                 temp = self.text
                 self.text += key
 
+                # Check the validity of the new input
                 if not self.check():
+                    # Reasign if not valid
                     self.text = temp
 
+            # If an invalid input is given, raise an error (thus crashing the program)
             else:
                 raise TypeError(f"Type {type(key)} not supported")
 
