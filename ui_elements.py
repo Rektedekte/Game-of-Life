@@ -2,6 +2,57 @@ import pygame
 from typing import Tuple
 
 
+class TextField:
+    def __init__(self,
+                 text: str,
+                 font: pygame.font.Font,
+                 pos: Tuple[int, int],
+                 center: bool = True,
+                 text_color: Tuple[int, int, int] = None
+                 ):
+
+        # Save all the variables
+        self.text = text
+        self.font = font
+        self.is_centered = center
+        self.pos = pos
+
+        # If text_color not specified
+        self.text_color = text_color
+        if not self.text_color:
+            self.text_color = (0, 0, 0)
+
+        # Create the text surface and rect for rendering
+        self.create_text()
+
+    # noinspection PyAttributeOutsideInit
+    def create_text(self):
+        """
+        This function creates the text surface and rect, used in rendering.
+        :return: None
+        """
+
+        # Call font.render to get the surface
+        self.surf = self.font.render(self.text, True, self.text_color)
+
+        # Get the rect of the surface, based on the center parameter
+        if self.is_centered:
+            self.rect = self.surf.get_rect(center=self.pos)
+        else:
+            self.rect = self.surf.get_rect(topleft=self.pos)
+
+    def render(self, surface: pygame.Surface):
+        """
+        This function renders the text onto the given surface,
+        at the position specified by self.rect.
+        :param surface: A pygame surface to render to
+        :return: None
+        """
+
+        # Draw the text surface on the given surface
+        surface.blit(self.surf, self.rect)
+
+
 class Button(pygame.Rect):
     def __init__(self,
                  text: str,
