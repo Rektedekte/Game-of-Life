@@ -1,23 +1,49 @@
 {
-  "field-dimensions":
-  {
-    "w": 80,
-    "h": 45
-  },
-  "game-speed": 1,
-  "animation": {
-    "animate-master": true,
-    "animate-count": 20,
-    "animate-speed": 1.3
-  },
-  "colors":
-  {
-    "color-bg": [50, 50, 50],
-    "color-cell-alive": [220, 220, 220],
-    "color-cell-dead": [50, 50, 50],
-    "color-grid": [200, 200, 200],
-    "color-buttons": [230, 50, 50],
-    "color-buttons-border": [20, 20, 20],
-    "color-text": [0, 0, 0]
-  }
+    "field-dimensions": {
+        "w": 80,
+        "h": 45
+    },
+    "game-speed": 1,
+    "animation": {
+        "animate-master": true,
+        "animate-count": 20,
+        "animate-speed": 1.3
+    },
+    "colors": {
+        "color-bg": [
+            50,
+            50,
+            50
+        ],
+        "color-cell-alive": [
+            220,
+            220,
+            220
+        ],
+        "color-cell-dead": [
+            50,
+            50,
+            50
+        ],
+        "color-grid": [
+            200,
+            200,
+            200
+        ],
+        "color-buttons": [
+            230,
+            50,
+            50
+        ],
+        "color-buttons-border": [
+            20,
+            20,
+            20
+        ],
+        "color-text": [
+            0,
+            0,
+            0
+        ]
+    }
 }

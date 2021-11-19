@@ -7,6 +7,7 @@ import json
 
 from game import Game
 import fonts
+from config import config
 from ui_elements import Button
 
 
@@ -21,8 +22,9 @@ class Menu:
         self.window = window
         self.clock = pygame.time.Clock()
 
-        # Load the config
-        self.load_config()
+        # Define the cell width and height
+        self.cw = self.window.width // config.w
+        self.ch = self.window.height // config.h
 
         # Create the grid surface used in rendering the menu
         self.create_grid()
@@ -31,41 +33,13 @@ class Menu:
         self.button = Button(
             "Play",
             fonts.main,
-            self.color_buttons,
+            config.color_buttons,
             self.play,
             (self.window.width // 2, self.window.height // 2, 300, 120),
             True,
-            text_color=self.color_text,
-            border_color=self.color_buttons_border
+            text_color=config.color_text,
+            border_color=config.color_buttons_border
         )
-
-    # noinspection PyAttributeOutsideInit
-    def load_config(self):
-        """
-        Load the config from config.json.
-        Only assigns some of the variables, as it doesn't need to save them again.
-        :return: None
-        """
-
-        with open("config.json", "r") as f:
-            data = json.load(f)
-
-        # Get the dimensions of the grid
-        self.w = data["field-dimensions"]["w"]
-        self.h = data["field-dimensions"]["h"]
-
-        # Calculate the cell width and height from the window dimensions
-        self.cw = self.window.width // self.w
-        self.ch = self.window.height // self.h
-
-        # Assign all the colors
-        self.color_bg = data["colors"]["color-bg"]
-        self.color_cell_alive = data["colors"]["color-cell-alive"]
-        self.color_cell_dead = data["colors"]["color-cell-dead"]
-        self.color_grid = data["colors"]["color-grid"]
-        self.color_buttons = data["colors"]["color-buttons"]
-        self.color_buttons_border = data["colors"]["color-buttons-border"]
-        self.color_text = data["colors"]["color-text"]
 
     # noinspection PyAttributeOutsideInit
     def create_grid(self):
@@ -75,12 +49,12 @@ class Menu:
         :return: None
         """
         self.grid = pygame.Surface((self.window.width, self.window.height), pygame.SRCALPHA)
-        self.grid.fill(self.color_cell_dead)
+        self.grid.fill(config.color_cell_dead)
 
-        for i in range(self.h):
-            for j in range(self.w):
+        for i in range(config.h):
+            for j in range(config.w):
                 rect = (self.cw * j, self.ch * i, self.cw, self.ch)
-                pygame.draw.rect(self.grid, self.color_grid, rect, 2)
+                pygame.draw.rect(self.grid, config.color_grid, rect, 2)
 
         self.grid = self.grid.convert_alpha()
 

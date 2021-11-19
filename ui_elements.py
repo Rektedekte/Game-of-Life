@@ -264,6 +264,8 @@ class InputBox(pygame.Rect):
     def render(self, surface: pygame.Surface):
         """
         Render the button onto a given surface.
+        This function also takes into account the size of the text_surface,
+        aligning it to the left and right depending on it's size.
         :param surface: The pygame.Surface to draw on
         :return: None
         """

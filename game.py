@@ -4,8 +4,8 @@ All code related to the game of life is contained here.
 """
 
 import pygame
-import json
 import numpy as np
+from config import config
 
 
 class Game:
@@ -19,25 +19,17 @@ class Game:
         self.window = window
         self.clock = pygame.time.Clock()
 
-        # Define the variables associated with animating the cells
-        self.animate_master = True
+        # Initialize the local animation variables
         self.animate_clock = pygame.time.Clock()
         self.animate_switch = False
-        self.animate_count = 20
-        self.animate_speed = 1.3
 
-        # Define the colors used in rendering
-        self.color_bg = (50, 50, 50)
-        self.color_cell_alive = (220, 220, 220)
-        self.color_cell_dead = (50, 50, 50)
-        self.color_grid = (200, 200, 200)
-
-        # Load the config
-        self.load_config()
+        # Calculate the cell width and height for rendering
+        self.cw = self.window.width // config.w
+        self.ch = self.window.height // config.h
 
         # Create the map from the config variables, and load the neigh_map
-        self.map: np.ndarray = np.zeros((self.h, self.w), dtype="bool")
-        self.neigh_map: list = [[self.get_neighbors(i, j) for j in range(self.w)] for i in range(self.h)]
+        self.map: np.ndarray = np.zeros((config.h, config.w), dtype="bool")
+        self.neigh_map: list = [[self.get_neighbors(i, j) for j in range(config.w)] for i in range(config.h)]
 
         # Create the grid used to split the cells visually
         self.create_grid()
@@ -48,67 +40,6 @@ class Game:
             "cells": []  # A list of cells to update
         }
 
-    # noinspection PyAttributeOutsideInit
-    def load_config(self):
-        """
-        Load the config, and store them in this object.
-        :return: None
-        """
-
-        with open("config.json", "r") as f:
-            data = json.load(f)
-
-        self.w = data["field-dimensions"]["w"]
-        self.h = data["field-dimensions"]["h"]
-        self.game_speed = data["game-speed"]
-
-        self.animate_master = data["animation"]["animate-master"]
-        self.animate_count = data["animation"]["animate-count"]
-        self.animate_speed = data["animation"]["animate-speed"]
-
-        self.color_bg = data["colors"]["color-bg"]
-        self.color_cell_alive = data["colors"]["color-cell-alive"]
-        self.color_cell_dead = data["colors"]["color-cell-dead"]
-        self.color_grid = data["colors"]["color-grid"]
-        self.color_buttons = data["colors"]["color-buttons"]
-        self.color_buttons_border = data["colors"]["color-buttons-border"]
-        self.color_text = data["colors"]["color-text"]
-
-        # Calculate the cell-width in pixels, necessary in rendering the map
-        self.cw = self.window.width // self.w
-        self.ch = self.window.height // self.h
-
-    def save_config(self):
-        """
-        Save the config from the current variable state.
-        :return: None
-        """
-
-        data = {
-            "field-dimensions": {
-                "w": self.w,
-                "h": self.h
-            },
-            "game-speed": self.game_speed,
-            "animation": {
-                "animate-master": self.animate_master,
-                "animate-count": self.animate_count,
-                "animate-speed": self.animate_speed
-            },
-            "colors": {
-                "color-bg": self.color_bg,
-                "color-cell-alive": self.color_cell_alive,
-                "color-cell-dead": self.color_cell_dead,
-                "color-grid": self.color_grid,
-                "color-buttons": self.color_buttons,
-                "color-buttons-border": self.color_buttons_border,
-                "color-text": self.color_text
-            }
-        }
-
-        with open("config.json", "w") as f:
-            json.dump(data, f)
-
     def get_neighbors(self, i: int, j: int) -> np.ndarray:
         """
         Get the neighbors of a particular cell, taking the borders into account.
@@ -117,7 +48,7 @@ class Game:
         :return: A np.ndarray of max 3x3, tied to self.map
         """
 
-        return self.map[max(0, i - 1): min(self.h - 1, i + 2), max(0, j - 1): min(self.w - 1, j + 2)]
+        return self.map[max(0, i - 1): min(config.h - 1, i + 2), max(0, j - 1): min(config.w - 1, j + 2)]
 
     def refresh_neighbors(self):
         """
@@ -125,7 +56,7 @@ class Game:
         :return: None
         """
 
-        self.neigh_map: list = [[self.get_neighbors(i, j) for j in range(self.w)] for i in range(self.h)]
+        self.neigh_map: list = [[self.get_neighbors(i, j) for j in range(config.w)] for i in range(config.h)]
 
     def get_neighbors_sum(self, i: int, j: int) -> int:
         """
@@ -143,10 +74,10 @@ class Game:
         This means creating a new board, and filling all cells based on the rules of the game of life.
         :return: None
         """
-        new_board = np.zeros((self.h, self.w), dtype="bool")
+        new_board = np.zeros((config.h, config.w), dtype="bool")
 
-        for i in range(self.h):
-            for j in range(self.w):
+        for i in range(config.h):
+            for j in range(config.w):
                 if self.map[i, j]:  # Cell is alive
                     if not 2 < self.get_neighbors_sum(i, j) < 5:  # Cell dies by over-/underpopulation
                         new_board[i, j] = 0
@@ -177,7 +108,7 @@ class Game:
 
         for i, j in np.ndindex(self.map.shape):
             rect = (self.cw * j, self.ch * i, self.cw, self.ch)
-            pygame.draw.rect(self.grid, self.color_grid, rect, 2)
+            pygame.draw.rect(self.grid, config.color_grid, rect, 2)
 
         self.grid = self.grid.convert_alpha()
 
@@ -189,19 +120,19 @@ class Game:
 
         # Fill the screen and draw the grid if "all" is on
         if self.draw_new["all"]:
-            self.window.fill(self.color_bg)
+            self.window.fill(config.color_bg)
             self.window.blit(self.grid, (0, 0))
 
         # Calculate the amount the rects change per frame
-        ani_diff_w = (self.cw - 3) / self.animate_count / 2
-        ani_diff_h = (self.ch - 3) / self.animate_count / 2
+        ani_diff_w = (self.cw - 3) / config.animate_count / 2
+        ani_diff_h = (self.ch - 3) / config.animate_count / 2
 
         rects = []
 
         # If animating is enabled, animate the cells dying and reproducing
-        if self.animate_switch and self.animate_master:
+        if self.animate_switch and config.animate_master:
             # Split the rendering into self.ani_count steps
-            for n in range(self.animate_count):
+            for n in range(config.animate_count):
                 rects = []
 
                 # Iterate through marked cells, or all cells if "all" flag is on
@@ -211,13 +142,13 @@ class Game:
                     if self.map[i, j]:
                         # Define the rect to draw, taking into account the frame of animation
                         rect = (
-                            self.cw * j + 2 + ani_diff_w * (self.animate_count - n),
-                            self.ch * i + 2 + ani_diff_h * (self.animate_count - n),
-                            self.cw - 3 - ani_diff_w * (self.animate_count - n) * 2,
-                            self.ch - 3 - ani_diff_h * (self.animate_count - n) * 2
+                            self.cw * j + 2 + ani_diff_w * (config.animate_count - n),
+                            self.ch * i + 2 + ani_diff_h * (config.animate_count - n),
+                            self.cw - 3 - ani_diff_w * (config.animate_count - n) * 2,
+                            self.ch - 3 - ani_diff_h * (config.animate_count - n) * 2
                         )
 
-                        pygame.draw.rect(self.window.window, self.color_cell_alive, rect)
+                        pygame.draw.rect(self.window.window, config.color_cell_alive, rect)
                         rects.append(rect)
                     else:
                         # Similarly define the rect, just the opposite of the expanding rect
@@ -229,13 +160,13 @@ class Game:
                         )
 
                         # Draw both the surrounding rect to remove the white, then draw the new rect
-                        pygame.draw.rect(self.window.window, self.color_cell_dead, full_rect)
-                        pygame.draw.rect(self.window.window, self.color_cell_alive, rect)
+                        pygame.draw.rect(self.window.window, config.color_cell_dead, full_rect)
+                        pygame.draw.rect(self.window.window, config.color_cell_alive, rect)
                         rects.append(full_rect)
 
                 # Update the rects that have been drawn to, then sync the framerate of the animation
                 self.window.update(rects)
-                self.animate_clock.tick(self.game_speed * self.animate_count * self.animate_speed)
+                self.animate_clock.tick(config.game_speed * config.animate_count * config.animate_speed)
 
         rects = []
 
@@ -244,9 +175,9 @@ class Game:
             rect = (self.cw * j + 2, self.ch * i + 2, self.cw - 3, self.ch - 3)
 
             if self.map[i, j]:
-                pygame.draw.rect(self.window.window, self.color_cell_alive, rect)
+                pygame.draw.rect(self.window.window, config.color_cell_alive, rect)
             else:
-                pygame.draw.rect(self.window.window, self.color_cell_dead, rect)
+                pygame.draw.rect(self.window.window, config.color_cell_dead, rect)
 
             rects.append(rect)
 
@@ -272,7 +203,7 @@ class Game:
         while running:
             # update the game, sync the framerate and render the scene
             self.game_tick()
-            self.clock.tick(self.game_speed)
+            self.clock.tick(config.game_speed)
             self.render()
 
             # Iterate through the events pygame collected
@@ -284,11 +215,11 @@ class Game:
 
                     # Increase the speed
                     elif event.key == pygame.K_UP:
-                        self.game_speed *= 1.1
+                        config.game_speed *= 1.1
 
                     # Decrease the speed
                     elif event.key == pygame.K_DOWN:
-                        self.game_speed /= 1.1
+                        config.game_speed /= 1.1
 
                     # Jump one frame forward
                     elif event.key == pygame.K_RIGHT:
@@ -320,7 +251,7 @@ class Game:
             j = x // self.cw
 
             # Only continue if the mouse is inside the map
-            if 0 <= i < self.h and 0 <= j < self.w:
+            if 0 <= i < config.h and 0 <= j < config.w:
                 # If left mouse-button has been pressed, mark the cell as alive
                 if buttons[0]:
                     if not self.map[i, j]:
@@ -348,14 +279,14 @@ class Game:
 
                     # Increase the speed
                     elif event.key == pygame.K_UP:
-                        self.game_speed *= 1.1
+                        config.game_speed *= 1.1
 
                     # Decrease the speed
                     elif event.key == pygame.K_DOWN:
-                        self.game_speed /= 1.1
+                        config.game_speed /= 1.1
 
                     # If the player presses q, reload the map, thus wiping all cells
                     elif event.key == pygame.K_q:
-                        self.map: np.ndarray = np.zeros((self.h, self.w), dtype="bool")
+                        self.map: np.ndarray = np.zeros((config.h, config.w), dtype="bool")
                         self.refresh_neighbors()
                         self.draw_new["all"] = True
