@@ -272,7 +272,25 @@ class InputBox(pygame.Rect):
         pygame.draw.rect(surface, self.color, self, 0, self.corner_round)
         pygame.draw.rect(surface, self.border_color_activated if self.activated else self.border_color, self, self.border_width, self.corner_round)
 
-        # Draw the text, centering it to the rect
+        # Create the text surface
         text_surf = self.font.render(self.text, True, self.text_color)
-        text_rect = text_surf.get_rect(center=self.center)
+
+        # Get the initial dimensions of the text surface
+        text_rect = text_surf.get_rect()
+        text_rect_width = text_rect.width
+        text_rect_height = text_rect.height
+
+        # If the text surface is too big to fit into the box
+        if text_rect_width > self.width - 10:
+            # Resize the surface, aligning the text to the right
+            sub_surf = text_surf.subsurface((text_rect_width - self.width + 10, 0, self.width - 10, text_rect_height))
+            text_rect = sub_surf.get_rect(right=self.right - 5, centery=self.centery)
+
+            # Overwrite initial surface
+            text_surf = sub_surf
+        else:
+            # If not, align the text to the left
+            text_rect = text_surf.get_rect(left=self.left + 5, centery=self.centery)
+
+        # Draw the text to the screen
         surface.blit(text_surf, text_rect)
