@@ -2,19 +2,39 @@ import pygame
 from typing import Tuple
 
 
+def align(rect: pygame.Rect, alignment: str):
+    if alignment[1] == "l":
+        rect.left = rect.x
+
+    elif alignment[1] == "c":
+        rect.centerx = rect.x
+
+    else:
+        rect.right = rect.x
+
+    if alignment[0] == "t":
+        rect.top = rect.y
+
+    elif alignment[0] == "c":
+        rect.centery = rect.y
+
+    else:
+        rect.bottom = rect.y
+
+
 class TextField:
     def __init__(self,
                  text: str,
                  font: pygame.font.Font,
                  pos: Tuple[int, int],
-                 center: bool = True,
+                 alignment: str = "cc",
                  text_color: Tuple[int, int, int] = None
                  ):
 
         # Save all the variables
         self.text = text
         self.font = font
-        self.is_centered = center
+        self.alignment = alignment
         self.pos = pos
 
         # If text_color not specified
@@ -35,22 +55,148 @@ class TextField:
         # Call font.render to get the surface
         self.surf = self.font.render(self.text, True, self.text_color)
 
-        # Get the rect of the surface, based on the center parameter
-        if self.is_centered:
-            self.rect = self.surf.get_rect(center=self.pos)
-        else:
-            self.rect = self.surf.get_rect(topleft=self.pos)
+        # Default to topleft, so that x and y may be correct. Then align the text based on alignment.
+        self.rect = self.surf.get_rect(topleft=self.pos)
+        align(self.rect, self.alignment)
 
-    def render(self, surface: pygame.Surface):
+    def render(self, surface: pygame.Surface, redraw: bool = False):
         """
         This function renders the text onto the given surface,
         at the position specified by self.rect.
         :param surface: A pygame surface to render to
+        :param redraw: Determine whether to refresh text before drawing
         :return: None
         """
 
+        if redraw:
+            self.create_text()
+
         # Draw the text surface on the given surface
         surface.blit(self.surf, self.rect)
+
+
+class Toggle(pygame.Rect):
+    def __init__(self,
+                 font: pygame.font.Font,
+                 color_enabled: Tuple[int, int, int],
+                 rect: Tuple[float, float, float, float],
+                 alignment: str = "cc",
+                 corner_round: int = 2,
+                 border_width: int = 2,
+                 border_color: Tuple[int, int, int] = None,
+                 text_color_enabled: Tuple[int, int, int] = None,
+                 text_color_disabled: Tuple[int, int, int] = None
+                 ):
+        """
+        This class emulates a toggle switch,
+        in case of boolean variables.
+
+        :param font: The font used to display on and off
+        :param color_enabled: The color to use in the enabled cell
+        :param rect: The overall rect of the toggle
+        :param alignment: The alignment to use
+        :param corner_round: The amount of corner rounding
+        :param border_width: The width of the border
+        :param border_color: The color of the border
+        :param text_color_enabled: The color of text in the enabled cell
+        :param text_color_disabled: The color of text in the disabled cell
+        """
+
+        # Initialize the super, in this case the container rect
+        super().__init__(*rect)
+
+        # Save all of the variables used in the class
+        self.font = font
+        self.color_enabled = color_enabled
+        self.alignment = alignment,
+        self.corner_round = corner_round
+        self.border_width = border_width
+
+        # If no border_color specified, default
+        self.border_color = border_color
+        if not border_color:
+            self.border_color = (0, 0, 0)
+
+        # If no text_color_enabled specified, default
+        self.text_color_enabled = text_color_enabled
+        if not text_color_enabled:
+            self.text_color_enabled = (255, 255, 255)
+
+        # If no text_color_disabled specified, default
+        self.text_color_disabled = text_color_disabled
+        if not text_color_disabled:
+            self.text_color_disabled = (0, 0, 0)
+
+        # Align the rect according to alignment
+        align(self, alignment)
+
+        # Initialize the sub rects, the on and off rect
+        self.on_rect = pygame.Rect(self.x, self.y, self.centerx - self.x, self.height)
+        self.off_rect = pygame.Rect(self.centerx, self.y, self.right - self.centerx, self.height)
+
+        # Initialize the labels associated with the on and off rects
+        self.on_label = TextField("on", self.font, self.on_rect.center, text_color=self.text_color_disabled)
+        self.off_label = TextField("off", self.font, self.off_rect.center, text_color=self.text_color_enabled)
+
+        # Default to enabled
+        self.enabled = False
+
+    def flip(self):
+        """
+        This function flips the toggle.
+        :return: None
+        """
+
+        self.enabled = not self.enabled
+        self.swap()
+
+    def enable(self):
+        """
+        This function enables the toggle.
+        :return: None
+        """
+
+        self.enabled = True
+        self.swap()
+
+    def disable(self):
+        """
+        This function disables the toggle.
+        :return: None
+        """
+
+        self.enabled = False
+        self.swap()
+
+    def swap(self):
+        """
+        This function swaps the colors of the two labels,
+        and forces them to redraw text.
+        :return: None
+        """
+        self.on_label.text_color, self.off_label.text_color = self.off_label.text_color, self.on_label.text_color
+
+        self.on_label.create_text()
+        self.off_label.create_text()
+
+    def render(self, surface: pygame.Surface):
+        """
+        Render the toggle.
+        This means rendering the container,
+        the two sub-rects and the labels.
+        :param surface: The pygame.Surface to draw on
+        :return: None
+        """
+
+        # Draw the containing rects border
+        pygame.draw.rect(surface, self.border_color, self, self.border_width, self.corner_round)
+
+        # Draw the colored rect, indicating whether the toggle is on or off
+        pygame.draw.rect(surface, self.color_enabled, self.on_rect if self.enabled else self.off_rect, 0, self.corner_round)
+
+        # Render the labels
+        self.on_label.render(surface)
+        self.off_label.render(surface)
 
 
 class Button(pygame.Rect):
@@ -60,7 +206,7 @@ class Button(pygame.Rect):
                  color: Tuple[int, int, int],
                  callback,
                  rect: Tuple[float, float, float, float],
-                 center: bool = True,
+                 alignment: str = "cc",
                  corner_round: int = 2,
                  border_width: int = 2,
                  border_color: Tuple[int, int, int] = None,
@@ -75,7 +221,7 @@ class Button(pygame.Rect):
         :param color: The color of the button
         :param callback: The callback to be called when pressed
         :param rect: The rect tuple to pass to super
-        :param center: A bool on whether to center the rect or not
+        :param alignment: A string representing the x and y alignment
         :param corner_round: An int of how much rounding to use on the corners
         :param border_width: An int of how wide to make the border
         :param border_color: A tuple of the color of the border
@@ -86,12 +232,10 @@ class Button(pygame.Rect):
         super().__init__(*rect)
 
         # Save all the variables used in the class
-        self.text = text
-        self.font = font
         self.color = color
         self.corner_round = corner_round
         self.border_width = border_width
-        self.is_centered = center
+        self.alignment = alignment
         self.callback = callback
 
         # Default if no border_color specified
@@ -100,13 +244,14 @@ class Button(pygame.Rect):
             self.border_color = (50, 50, 50)
 
         # Default if no text_color specified
-        self.text_color = text_color
         if not text_color:
-            self.text_color = (0, 0, 0)
+            text_color = (0, 0, 0)
 
-        # Center the rect if specified
-        if center:
-            self.center = (self.x, self.y)
+        # Align the button, according to input
+        align(self, alignment)
+
+        # Create the text_field to draw
+        self.text_field = TextField(text, font, self.center, text_color=text_color)
 
     def render(self, surface: pygame.Surface):
         """
@@ -119,10 +264,8 @@ class Button(pygame.Rect):
         pygame.draw.rect(surface, self.color, self, 0, self.corner_round)
         pygame.draw.rect(surface, self.border_color, self, self.border_width, self.corner_round)
 
-        # Draw the text, centering it to the rect
-        text_surf = self.font.render(self.text, True, self.text_color)
-        text_rect = text_surf.get_rect(center=self.center)
-        surface.blit(text_surf, text_rect)
+        # Draw the text
+        self.text_field.render(surface)
 
 
 class InputBox(pygame.Rect):
@@ -132,7 +275,7 @@ class InputBox(pygame.Rect):
                  font: pygame.font.Font,
                  color: Tuple[int, int, int],
                  rect: Tuple[float, float, float, float],
-                 center: bool = True,
+                 alignment: str = "cc",
                  corner_round: int = 2,
                  border_width: int = 2,
                  border_color: Tuple[int, int, int] = None,
@@ -148,7 +291,7 @@ class InputBox(pygame.Rect):
         :param font: the pygame.font.Font to be used in rendering
         :param color: A tuple containing color of the box
         :param rect: A tuple containing the rect of the box
-        :param center: A bool on whether to center the rect
+        :param alignment: A string representing the alignment to use
         :param corner_round: An int on the roundness of the corners
         :param border_width: An int on the width of the border
         :param border_color: A tuple on the color of the border
@@ -166,7 +309,7 @@ class InputBox(pygame.Rect):
         self.color = color
         self.corner_round = corner_round
         self.border_width = border_width
-        self.is_centered = center
+        self.alignment = alignment
         self.activated = False
 
         if not self.check():
@@ -187,9 +330,8 @@ class InputBox(pygame.Rect):
         if not text_color:
             self.text_color = (0, 0, 0)
 
-        # Center the rect if specified
-        if center:
-            self.center = (self.x, self.y)
+        # Align the box, according to input
+        align(self, alignment)
 
     def check(self):
         """

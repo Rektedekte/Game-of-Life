@@ -11,9 +11,9 @@
     },
     "colors": {
         "color-bg": [
-            50,
-            50,
-            50
+            220,
+            220,
+            220
         ],
         "color-cell-alive": [
             220,
@@ -40,10 +40,15 @@
             20,
             20
         ],
-        "color-text": [
+        "color-buttons-text": [
             0,
             0,
             0
+        ],
+        "color-text": [
+            255,
+            255,
+            255
         ]
     }
 }
