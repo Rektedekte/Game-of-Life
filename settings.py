@@ -1,6 +1,6 @@
 import fonts
 from config import config
-from ui_elements import Button, TextField, InputBox, Toggle
+from ui_elements import Button, TextField, InputBox, Toggle, InputGroup
 
 
 class Settings:
@@ -9,7 +9,7 @@ class Settings:
 
         text_default = {
             "font": fonts.main,
-            "center": False,
+            "alignment": "tl",
             "text_color": config.color_text
         }
 
@@ -40,6 +40,14 @@ class Settings:
         for text, i in zip(text_contents, range(len(text_contents))):
             self.text_fields.append(TextField(text, pos=(5, i * 40 + 5), **text_default))
 
+        self.e = InputGroup(
+            ("1", "2", "3"),
+            int,
+            fonts.main,
+            (255, 255, 255),
+            (300, 300, 300, 70)
+        )
+
         """self.text_fields.append(TextField("Width:", pos=(5, 5), **text_default))
         self.text_fields.append(TextField("Height:", pos=(5, 55), **text_default))
         self.text_fields.append(TextField("Game-speed:", pos=(5, 105), **text_default))
@@ -60,5 +68,7 @@ class Settings:
 
         for text_field in self.text_fields:
             text_field.render(self.window.window)
+
+        self.e.render(self.window.window)
 
         self.window.update()

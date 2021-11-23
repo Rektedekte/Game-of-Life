@@ -268,6 +268,97 @@ class Button(pygame.Rect):
         self.text_field.render(surface)
 
 
+class InputGroup(pygame.Rect):
+    def __init__(self,
+                 texts: Tuple,
+                 content_type: type,
+                 font: pygame.font.Font,
+                 color: Tuple[int, int, int],
+                 rect: Tuple[float, float, float, float],
+                 padding: int = 5,
+                 alignment: str = "cc",
+                 corner_round: int = 2,
+                 border_width: int = 2,
+                 border_color: Tuple[int, int, int] = None,
+                 border_color_activated: Tuple[int, int, int] = None,
+                 text_color: Tuple[int, int, int] = None
+                 ):
+
+        # Call the super init to initialize the rect
+        super().__init__(*rect)
+
+        # Save all the variables used in the class
+        self.content_type = content_type
+        self.font = font
+        self.color = color
+        self.corner_round = corner_round
+        self.border_width = border_width
+        self.alignment = alignment
+
+        # Default if no border_color specified
+        self.border_color = border_color
+        if not border_color:
+            self.border_color = (50, 50, 50)
+
+        # Default if no border_color_activated specified
+        self.border_color_activated = border_color_activated
+        if not self.border_color_activated:
+            self.border_color_activated = (220, 20, 20)
+
+        # Default if no text_color specified
+        self.text_color = text_color
+        if not text_color:
+            self.text_color = (0, 0, 0)
+
+        # Align the box, according to input
+        align(self, alignment)
+
+        # Initialize all the input fields associated with the group
+        self.input_fields = []
+        for i, text in enumerate(texts):
+            self.input_fields.append(InputBox(
+                text,
+                self.content_type,
+                self.font,
+                self.color,
+                (
+                        self.x + i * self.width / len(texts) + padding,
+                        self.y + padding,
+                        self.width / len(texts) - 2 * padding,
+                        self.height - 2 * padding
+                ),
+                "tl",
+                self.corner_round,
+                self.border_width,
+                self.border_color,
+                self.border_color_activated,
+                self.text_color
+            ))
+
+    def collidepoint(self, x: float, y: float):
+        """
+        This function acts as a medium between the group and the inputboxes,
+        when it comes to detecting inputs.
+        :param x: The x coordinate of the mouse
+        :param y: The y coordinate of the mouse
+        :return: send_keys function of corresponding inputbox
+        """
+
+        # Check if the mouse collides with any of the inputboxes
+        for input_field in self.input_fields:
+            result = input_field.collidepoint(x, y)
+
+            if result:
+                return result
+
+        # Return the send_keys function, if a result was reached
+        return False
+
+    def render(self, surface: pygame.Surface):
+        for input_field in self.input_fields:
+            input_field.render(surface)
+
+
 class InputBox(pygame.Rect):
     def __init__(self,
                  text: str,
@@ -332,6 +423,25 @@ class InputBox(pygame.Rect):
 
         # Align the box, according to input
         align(self, alignment)
+
+    def collidepoint(self, x: float, y: float):
+        """
+        This function overwrites the collidepoint function,
+        allowing us to return the send_keys function when pressed.
+        :param x: The x coordinate of the mouse
+        :param y: The y coordinate of the mouse
+        :return: send_keys if collidepoint true
+        """
+
+        # Call the super collidepoint function
+        if super().collidepoint(x, y):
+            self.activated = not self.activated
+
+            # If not already activated, activate and return send_keys
+            if self.activated:
+                return self.send_keys
+
+        return False
 
     def check(self):
         """
