@@ -78,6 +78,3 @@ class Config:
         # Dump the content, pretty print style
         with open("config.json", "w") as f:
             json.dump(data, f, indent=4)
-
-
-config = Config()
