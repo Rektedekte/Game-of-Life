@@ -70,6 +70,7 @@ class Config:
                 "color-grid": self.color_grid,
                 "color-buttons": self.color_buttons,
                 "color-buttons-border": self.color_buttons_border,
+                "color-buttons-text": self.color_buttons_text,
                 "color-text": self.color_text
             }
         }

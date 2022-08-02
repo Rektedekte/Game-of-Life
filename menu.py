@@ -6,6 +6,7 @@ import pygame
 import json
 
 from game import Game
+from settings import Settings
 import fonts
 from config import config
 from ui_elements import Button
@@ -22,20 +23,30 @@ class Menu:
         self.window = window
         self.clock = pygame.time.Clock()
 
-        # Define the cell width and height
-        self.cw = self.window.width // config.w
-        self.ch = self.window.height // config.h
+        self.cw = None
+        self.ch = None
 
         # Create the grid surface used in rendering the menu
         self.create_grid()
 
         # Initialize the custom button, derived from a pygame.Rect
-        self.button = Button(
+        self.play_button = Button(
             "Play",
             fonts.main,
             config.color_buttons,
             self.play,
-            (self.window.width // 2, self.window.height // 2, 300, 120),
+            (self.window.width // 2, self.window.height // 2 - 80, 300, 120),
+            "cc",
+            text_color=config.color_buttons_text,
+            border_color=config.color_buttons_border
+        )
+
+        self.settings_button = Button(
+            "Settings",
+            fonts.main,
+            config.color_buttons,
+            self.settings,
+            (self.window.width // 2, self.window.height // 2 + 80, 300, 120),
             "cc",
             text_color=config.color_buttons_text,
             border_color=config.color_buttons_border
@@ -48,6 +59,10 @@ class Menu:
         It uses the Surface.convert_alpha and pygame.SRCALPHA to create the transparent squares.
         :return: None
         """
+        # Define the cell width and height
+        self.cw = self.window.width // config.w
+        self.ch = self.window.height // config.h
+
         self.grid = pygame.Surface((self.window.width, self.window.height), pygame.SRCALPHA)
         self.grid.fill(config.color_cell_dead)
 
@@ -68,10 +83,26 @@ class Menu:
         # Draw the grid on the screen
         self.window.blit(self.grid, (0, 0))
 
-        self.button.render(self.window.window)
+        self.play_button.render(self.window.window)
+        self.settings_button.render(self.window.window)
 
         # Update the entire scene, as this is a close to one-time call
         self.window.update()
+
+    def settings(self):
+        """
+        The callback function for the "settings" button
+        :return: None
+        """
+
+        # Initialize, run and delete the settings object
+        settings = Settings(self.window)
+        settings.run()
+        del settings
+
+        # Render the scene once again, to overwrite the settings rendering
+        self.create_grid()
+        self.render()
 
     def play(self):
         """
@@ -112,9 +143,14 @@ class Menu:
                         x, y = pygame.mouse.get_pos()
 
                         # Check if the cursor collides with the button
-                        if self.button.collidepoint(x, y):
+                        if self.play_button.collidepoint(x, y):
                             # Call the buttons callback
                             # I would like to have the callbacks handled differently, but couldn't come up with anything
-                            self.button.callback()
+                            self.play_button.callback()
+
+                        # Check if the cursor collides with the settings button
+                        if self.settings_button.collidepoint(x, y):
+                            # Call the buttons callback
+                            self.settings_button.callback()
 
             self.clock.tick(60)

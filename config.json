@@ -1,9 +1,9 @@
 {
     "field-dimensions": {
-        "w": 80,
+        "w": 120,
         "h": 45
     },
-    "game-speed": 1,
+    "game-speed": 1.0,
     "animation": {
         "animate-master": true,
         "animate-count": 20,
@@ -11,9 +11,9 @@
     },
     "colors": {
         "color-bg": [
-            220,
-            220,
-            220
+            200,
+            200,
+            200
         ],
         "color-cell-alive": [
             220,

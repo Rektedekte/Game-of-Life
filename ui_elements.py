@@ -85,7 +85,8 @@ class Toggle(pygame.Rect):
                  border_width: int = 2,
                  border_color: Tuple[int, int, int] = None,
                  text_color_enabled: Tuple[int, int, int] = None,
-                 text_color_disabled: Tuple[int, int, int] = None
+                 text_color_disabled: Tuple[int, int, int] = None,
+                 enabled: bool = False
                  ):
         """
         This class emulates a toggle switch,
@@ -100,6 +101,7 @@ class Toggle(pygame.Rect):
         :param border_color: The color of the border
         :param text_color_enabled: The color of text in the enabled cell
         :param text_color_disabled: The color of text in the disabled cell
+        :param enabled: Default value of the toggle
         """
 
         # Initialize the super, in this case the container rect
@@ -139,7 +141,38 @@ class Toggle(pygame.Rect):
         self.off_label = TextField("off", self.font, self.off_rect.center, text_color=self.text_color_enabled)
 
         # Default to enabled
-        self.enabled = False
+        self.enabled = enabled
+
+        if self.enabled:
+            self.enable()
+
+    def collidepoint(self, x: float, y: float):
+        """
+        This function acts as a medium between the toggle and the boolean buttons,
+        when it comes to detecting inputs.
+        :param x: The x coordinate of the mouse
+        :param y: The y coordinate of the mouse
+        :return: Boolean representing collision
+        """
+
+        # Check if the mouse collides with the on button
+        if self.on_rect.collidepoint(x, y):
+            # Enable the toggle and return
+            if not self.enabled: self.enable()
+            return True
+
+        # Check if the mouse collides with the off button
+        if self.off_rect.collidepoint(x, y):
+            # Disable the toggle and return
+            if self.enabled: self.disable()
+            return True
+
+        # No collision detected
+        return False
+
+    @property
+    def value(self):
+        return self.enabled
 
     def flip(self):
         """
@@ -275,20 +308,44 @@ class InputGroup(pygame.Rect):
                  font: pygame.font.Font,
                  color: Tuple[int, int, int],
                  rect: Tuple[float, float, float, float],
-                 padding: int = 5,
                  alignment: str = "cc",
+                 lower: int = 0,
+                 upper: int = 255,
+                 padding: int = 5,
                  corner_round: int = 2,
                  border_width: int = 2,
                  border_color: Tuple[int, int, int] = None,
                  border_color_activated: Tuple[int, int, int] = None,
                  text_color: Tuple[int, int, int] = None
                  ):
+        """
+        This class emulates an input group,
+        where the user can input data into multiple InputBoxes,
+        all collected into this class.
+
+        :param texts: The default content to be displayed in the boxes
+        :param content_type: The type of input to be used (str, int, float)
+        :param font: The pygame.font.Font to be used in rendering
+        :param color: A tuple containing color of the boxes
+        :param rect: A tuple containing the rect of the input group
+        :param alignment: A string representing the alignment to use
+        :param lower: Lower bound if int or float
+        :param upper: Upper bound if int or float
+        :param padding: The padding between the boxes
+        :param corner_round: An int defining the roundness of the boxes
+        :param border_width: An int on the width of the border of the boxes
+        :param border_color: A tuple on the color of the border of the boxes
+        :param border_color_activated: A tuple on the color of the activated border of the boxes
+        :param text_color: A tuple on the color of the text of the boxes
+        """
 
         # Call the super init to initialize the rect
         super().__init__(*rect)
 
         # Save all the variables used in the class
         self.content_type = content_type
+        self.lower = lower
+        self.upper = upper
         self.font = font
         self.color = color
         self.corner_round = corner_round
@@ -323,11 +380,13 @@ class InputGroup(pygame.Rect):
                 self.color,
                 (
                         self.x + i * self.width / len(texts) + padding,
-                        self.y + padding,
+                        self.y,
                         self.width / len(texts) - 2 * padding,
-                        self.height - 2 * padding
+                        self.height
                 ),
                 "tl",
+                self.lower,
+                self.upper,
                 self.corner_round,
                 self.border_width,
                 self.border_color,
@@ -343,16 +402,21 @@ class InputGroup(pygame.Rect):
         :param y: The y coordinate of the mouse
         :return: send_keys function of corresponding inputbox
         """
+        result = False
 
         # Check if the mouse collides with any of the inputboxes
         for input_field in self.input_fields:
-            result = input_field.collidepoint(x, y)
+            new_result = input_field.collidepoint(x, y)
 
-            if result:
-                return result
+            if new_result:
+                result = new_result
 
         # Return the send_keys function, if a result was reached
-        return False
+        return result
+
+    @property
+    def value(self):
+        return [input_field.value for input_field in self.input_fields]
 
     def render(self, surface: pygame.Surface):
         for input_field in self.input_fields:
@@ -367,6 +431,8 @@ class InputBox(pygame.Rect):
                  color: Tuple[int, int, int],
                  rect: Tuple[float, float, float, float],
                  alignment: str = "cc",
+                 lower: int = 0,
+                 upper: int = 255,
                  corner_round: int = 2,
                  border_width: int = 2,
                  border_color: Tuple[int, int, int] = None,
@@ -379,10 +445,12 @@ class InputBox(pygame.Rect):
 
         :param text: The initial text for the box to contain
         :param content_type: The type of input to be used (str, int, float)
-        :param font: the pygame.font.Font to be used in rendering
+        :param font: The pygame.font.Font to be used in rendering
         :param color: A tuple containing color of the box
         :param rect: A tuple containing the rect of the box
         :param alignment: A string representing the alignment to use
+        :param lower: Lower bound of value if int or float
+        :param upper: Upper bound of value if int or float
         :param corner_round: An int on the roundness of the corners
         :param border_width: An int on the width of the border
         :param border_color: A tuple on the color of the border
@@ -394,8 +462,10 @@ class InputBox(pygame.Rect):
         super().__init__(*rect)
 
         # Save all the variables used in the class
-        self.text = text
+        self.text = str(text)
         self.content_type = content_type
+        self.lower = lower
+        self.upper = upper
         self.font = font
         self.color = color
         self.corner_round = corner_round
@@ -441,7 +511,12 @@ class InputBox(pygame.Rect):
             if self.activated:
                 return self.send_keys
 
+        self.activated = False
         return False
+
+    @property
+    def value(self):
+        return self.content_type(self.text)
 
     def check(self):
         """
@@ -462,7 +537,7 @@ class InputBox(pygame.Rect):
         except ValueError:
             return not len(self.text)
 
-        return True
+        return self.lower <= int(self.text) <= self.upper
 
     def check_float(self):
         """
@@ -475,7 +550,7 @@ class InputBox(pygame.Rect):
         except ValueError:
             return not len(self.text)
 
-        return True
+        return self.lower <= float(self.text) <= self.upper
 
     # A dict used to jump to the correct checker, can be expanded
     checks = {
@@ -493,12 +568,17 @@ class InputBox(pygame.Rect):
 
         # Iterate through the keys given
         for key in keys:
+            # If stop signal received, deactivate self
+            if not key and isinstance(key, bool):
+                self.activated = False
+                return True
+
             # If the used has pressed backspace
             if key == pygame.K_BACKSPACE:
                 if self.text:
                     self.text = self.text[:-1]
 
-            # I the input is a string
+            # If the input is a string
             elif isinstance(key, str):
                 # Store the original temporarily
                 temp = self.text
