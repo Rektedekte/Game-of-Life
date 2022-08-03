@@ -11,19 +11,19 @@
     },
     "colors": {
         "color-bg": [
-            240,
-            240,
-            240
+            200,
+            200,
+            200
         ],
         "color-cell-alive": [
-            0,
-            0,
-            0
-        ],
-        "color-cell-dead": [
             220,
             220,
             220
+        ],
+        "color-cell-dead": [
+            50,
+            50,
+            50
         ],
         "color-grid": [
             200,

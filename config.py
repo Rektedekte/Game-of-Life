@@ -16,8 +16,19 @@ class Config:
         Config parameters can be flatly accessed through attributing.
         """
 
+        self.content = {}
+        self._load()
+
+    def _load(self):
+        """
+        The load code has to be separate to init,
+        as i need to call it when resetting the config.
+
+        :return: None
+        """
+
         # Load the config.json file, and parse it with json
-        with open("config.json", "r") as f:
+        with open("resources/config.json", "r") as f:
             data = json.load(f)
 
         # Flatten the data to simplify handling
@@ -45,10 +56,28 @@ class Config:
         else:
             self.content[key] = value
 
+    def reset(self):
+        """
+        This function resets the config to the default settings,
+        stored in config.default.json.
+
+        :return: None
+        """
+
+        # This is a very primitive approach.
+        # Other methods are faster, but may not work depending on the permissions and filesystem.
+        # This is guaranteed to work.
+        with open("resources/config.json", "w+") as dst:
+            with open("resources/config.default.json", "r") as src:
+                dst.write(src.read())
+
+        self._load()
+
     def save(self):
         """
         This function saves the config from the parameters to the file.
         It is very manual as of now.
+
         :return: None
         """
 
@@ -78,3 +107,6 @@ class Config:
         # Dump the content, pretty print style
         with open("config.json", "w") as f:
             json.dump(data, f, indent=4)
+
+
+config = Config()

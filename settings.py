@@ -13,6 +13,9 @@ from ui_elements import Button, TextField, InputBox, Toggle, InputGroup
 class Settings:
     def __init__(self, window):
         self.window = window
+        self.window.resize(700, 900, False)
+        self.window.set_caption("Settings - Game of Life")
+        self.clock = pygame.time.Clock()
 
         text_default = {
             "font": fonts.main,
@@ -45,16 +48,66 @@ class Settings:
         )
 
         for text, i in zip(text_contents, range(len(text_contents))):
-            self.text_fields.append(TextField(text, pos=(5, i * 40 + 20), **text_default))
+            self.text_fields.append(TextField(text, pos=(20, i * 40 + 35), **text_default))
 
         self.input_fields = []
+        self._load_config()
+
+        self.buttons = []
+
+        self.buttons.append(Button(
+            "exit",
+            fonts.main,
+            config.color_buttons,
+            self.exit,
+            (60, 800, 180, 80),
+            "tl"
+        ))
+
+        self.buttons.append(Button(
+            "save",
+            fonts.main,
+            config.color_buttons,
+            self.save,
+            (260, 800, 180, 80),
+            "tl"
+        ))
+
+        self.buttons.append(Button(
+            "reset",
+            fonts.main,
+            config.color_buttons,
+            self.reset,
+            (460, 800, 180, 80),
+            "tl"
+        ))
+
+        # Send keys refers to the function that takes keys in the activated input field
+        self.send_keys = None
+
+        # To send keys to the input fields, we use a buffer that collects presses
+        self.input_buffer = []
+
+        # For this class, we use a running variable available to the entire object
+        self.running = True
+
+    def _load_config(self):
+        """
+        This function loads the config.
+        It is painful to have this much init code in a class function,
+        but it is necessary for the reset function.
+
+        :return: None
+        """
+
+        self.input_fields.clear()
 
         self.input_fields.append(InputBox(
             config.w,
             int,
             fonts.main,
             (240, 240, 240),
-            (600, 60, 100, 38),
+            (680, 75, 100, 38),
             "cr",
             text_color=config.color_buttons_text,
             border_color=config.color_buttons_border
@@ -65,7 +118,7 @@ class Settings:
             int,
             fonts.main,
             (240, 240, 240),
-            (600, 100, 100, 38),
+            (680, 115, 100, 38),
             "cr",
             text_color=config.color_buttons_text,
             border_color=config.color_buttons_border
@@ -76,7 +129,7 @@ class Settings:
             float,
             fonts.main,
             (240, 240, 240),
-            (600, 220, 100, 38),
+            (680, 235, 100, 38),
             "cr",
             text_color=config.color_buttons_text,
             border_color=config.color_buttons_border
@@ -85,7 +138,7 @@ class Settings:
         self.input_fields.append(Toggle(
             fonts.main,
             config.color_buttons_border,
-            (600, 260, 200, 38),
+            (680, 275, 200, 38),
             "cr",
             border_color=config.color_buttons_border,
             enabled=config.animate_master
@@ -96,7 +149,7 @@ class Settings:
             int,
             fonts.main,
             (240, 240, 240),
-            (600, 300, 100, 38),
+            (680, 315, 100, 38),
             "cr",
             text_color=config.color_buttons_text,
             border_color=config.color_buttons_border
@@ -107,7 +160,7 @@ class Settings:
             float,
             fonts.main,
             (240, 240, 240),
-            (600, 340, 100, 38),
+            (680, 355, 100, 38),
             "cr",
             text_color=config.color_buttons_text,
             border_color=config.color_buttons_border
@@ -118,7 +171,7 @@ class Settings:
             int,
             fonts.main,
             (240, 240, 240),
-            (600, 460, 244, 38),
+            (680, 475, 244, 38),
             "cr",
             padding=2,
             text_color=config.color_buttons_text,
@@ -130,7 +183,7 @@ class Settings:
             int,
             fonts.main,
             (240, 240, 240),
-            (600, 500, 244, 38),
+            (680, 515, 244, 38),
             "cr",
             padding=2,
             text_color=config.color_buttons_text,
@@ -142,7 +195,7 @@ class Settings:
             int,
             fonts.main,
             (240, 240, 240),
-            (600, 540, 244, 38),
+            (680, 555, 244, 38),
             "cr",
             padding=2,
             text_color=config.color_buttons_text,
@@ -154,7 +207,7 @@ class Settings:
             int,
             fonts.main,
             (240, 240, 240),
-            (600, 580, 244, 38),
+            (680, 595, 244, 38),
             "cr",
             padding=2,
             text_color=config.color_buttons_text,
@@ -166,7 +219,7 @@ class Settings:
             int,
             fonts.main,
             (240, 240, 240),
-            (600, 620, 244, 38),
+            (680, 635, 244, 38),
             "cr",
             padding=2,
             text_color=config.color_buttons_text,
@@ -178,7 +231,7 @@ class Settings:
             int,
             fonts.main,
             (240, 240, 240),
-            (600, 660, 244, 38),
+            (680, 675, 244, 38),
             "cr",
             padding=2,
             text_color=config.color_buttons_text,
@@ -190,7 +243,7 @@ class Settings:
             int,
             fonts.main,
             (240, 240, 240),
-            (600, 700, 244, 38),
+            (680, 715, 244, 38),
             "cr",
             padding=2,
             text_color=config.color_buttons_text,
@@ -202,33 +255,21 @@ class Settings:
             int,
             fonts.main,
             (240, 240, 240),
-            (600, 740, 244, 38),
+            (680, 755, 244, 38),
             "cr",
             padding=2,
             text_color=config.color_buttons_text,
             border_color=config.color_buttons_border
         ))
 
-        # Send keys refers to the function that takes keys in the activated input field
-        self.send_keys = None
+    def reset(self):
+        config.reset()
+        self._load_config()
 
-        # To send keys to the input fields, we use a buffer that collects presses
-        self.input_buffer = []
-
-        """self.text_fields.append(TextField("Width:", pos=(5, 5), **text_default))
-        self.text_fields.append(TextField("Height:", pos=(5, 55), **text_default))
-        self.text_fields.append(TextField("Game-speed:", pos=(5, 105), **text_default))
-        self.text_fields.append(TextField("Animate:", pos=(5, 155), **text_default))
-        self.text_fields.append(TextField("Animation frames:", pos=(5, 205), **text_default))
-        self.text_fields.append(TextField("Animation speed:", pos=(5, 255), **text_default))
-        self.text_fields.append(TextField("Background color:", pos=(5, 305), **text_default))
-        self.text_fields.append(TextField("Live cell color:", pos=(5, 355), **text_default))
-        self.text_fields.append(TextField("Dead cell color:", pos=(5, 405), **text_default))
-        self.text_fields.append(TextField("Grid color:", pos=(5, 455), **text_default))
-        self.text_fields.append(TextField("Button color:", pos=(5, 505), **text_default))
-        self.text_fields.append(TextField("Button border color:", pos=(5, 555), **text_default))
-        self.text_fields.append(TextField("Button text color:", pos=(5, 605), **text_default))
-        self.text_fields.append(TextField("Text color:", pos=(5, 655), **text_default))"""
+    def exit(self):
+        self.running = False
+        self.window.resize(None, None, True)
+        self.window.set_caption("Game of Life")
 
     def save(self):
         # Iterate over all config entries in config, and reassign their values
@@ -247,6 +288,9 @@ class Settings:
         for input_field in self.input_fields:
             input_field.render(self.window.window)
 
+        for button in self.buttons:
+            button.render(self.window.window)
+
         self.window.update()
 
     def run(self):
@@ -255,11 +299,12 @@ class Settings:
         :return: None
         """
 
-        running = True
+        self.running = True
         self.render()
 
-        while running:
+        while self.running:
             self.render()
+            self.clock.tick(24)
 
             # If an input field is activated, send the buffer and clear
             if self.send_keys:
@@ -269,15 +314,11 @@ class Settings:
             # Iterate through the events pygame has collected
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
-                    # If the user has pressed escape, exit settings menu
+                    # If the user has pressed escape, return to the main menu
                     if event.key == pygame.K_ESCAPE:
-                        running = False
+                        self.exit()
 
-                    # If the user has pressed s, save the new settings
-                    elif event.key == pygame.K_s:
-                        self.save()
-
-                    # If the user has pressed escape, deactivate current input field
+                    # If the user has pressed return, deactivate current input field
                     elif event.key == pygame.K_RETURN:
                         if self.send_keys:
                             self.send_keys(False)
@@ -320,3 +361,8 @@ class Settings:
                         # If not collision occurs, send_keys must be None
                         if not collision:
                             self.send_keys = None
+
+                        # Iterate through buttons
+                        for button in self.buttons:
+                            if button.collidepoint(x, y):
+                                button.callback()

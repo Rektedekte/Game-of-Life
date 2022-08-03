@@ -3,14 +3,29 @@ from typing import Tuple
 
 
 def align(rect: pygame.Rect, alignment: str):
+    """
+    This function aligns a pygame.Rect according to the alignment string.
+
+    :param rect: The object to be aligned
+    :param alignment: A string of format "yx" where y is either t (top), c (center) or b (bottom),
+    and x is either l (left), c (center) and r (right)
+    :return: None
+    """
+
+    if not isinstance(alignment, str) or len(alignment) != 2:
+        raise ValueError("Invalid alignment format, please use format \"yx\"")
+
     if alignment[1] == "l":
         rect.left = rect.x
 
     elif alignment[1] == "c":
         rect.centerx = rect.x
 
-    else:
+    elif alignment[1] == "r":
         rect.right = rect.x
+
+    else:
+        raise ValueError("Invalid x parameter, please refer to function documentation")
 
     if alignment[0] == "t":
         rect.top = rect.y
@@ -18,8 +33,11 @@ def align(rect: pygame.Rect, alignment: str):
     elif alignment[0] == "c":
         rect.centery = rect.y
 
-    else:
+    elif alignment[0] == "b":
         rect.bottom = rect.y
+
+    else:
+        raise ValueError("Invalid y parameter, please refer to function documentation")
 
 
 class TextField:
@@ -512,6 +530,12 @@ class InputBox(pygame.Rect):
                 return self.send_keys
 
         self.activated = False
+
+        # If number, ensure that box not empty, as it can lead to errors
+        if self.content_type in {int, float}:
+            if self.text == "":
+                self.text = "0"
+
         return False
 
     @property
@@ -571,6 +595,12 @@ class InputBox(pygame.Rect):
             # If stop signal received, deactivate self
             if not key and isinstance(key, bool):
                 self.activated = False
+
+                # If number, ensure that box not empty, as it can lead to errors
+                if self.content_type in {int, float}:
+                    if self.text == "":
+                        self.text = "0"
+
                 return True
 
             # If the used has pressed backspace

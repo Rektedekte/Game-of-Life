@@ -21,6 +21,8 @@ class Menu:
 
         # Claim the window and initialize the clock
         self.window = window
+        self.window.set_caption("Game of Life")
+        self.window.set_icon(pygame.image.load("resources/icon.png"))
         self.clock = pygame.time.Clock()
 
         self.cw = None
