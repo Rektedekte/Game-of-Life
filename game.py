@@ -202,7 +202,6 @@ class Game:
         ani_diff_w = (self.cw - 3) / config.animate_count / 2
         ani_diff_h = (self.ch - 3) / config.animate_count / 2
 
-        rects = []
 
         # If animating is enabled, animate the cells dying and reproducing
         if self.animate_switch and config.animate_master:

@@ -176,13 +176,17 @@ class Toggle(pygame.Rect):
         # Check if the mouse collides with the on button
         if self.on_rect.collidepoint(x, y):
             # Enable the toggle and return
-            if not self.enabled: self.enable()
+            if not self.enabled:
+                self.enable()
+
             return True
 
         # Check if the mouse collides with the off button
         if self.off_rect.collidepoint(x, y):
             # Disable the toggle and return
-            if self.enabled: self.disable()
+            if self.enabled:
+                self.disable()
+
             return True
 
         # No collision detected
@@ -542,6 +546,7 @@ class InputBox(pygame.Rect):
     def value(self):
         return self.content_type(self.text)
 
+    # noinspection PyTypeChecker
     def check(self):
         """
         This function chooses the correct checker, then returns the result
