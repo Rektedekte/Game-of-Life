@@ -6,6 +6,8 @@ All code related to the game of life is contained here.
 import pygame
 import numpy as np
 from config import config
+from ui_elements import Button
+import fonts
 
 
 class Game:
@@ -39,6 +41,79 @@ class Game:
             "all": True,  # Flag to draw everything, is initially on for first render
             "cells": []  # A list of cells to update
         }
+
+        self.buttons = []
+
+        self.buttons.append(Button(
+            "exit",
+            fonts.main,
+            config.color_buttons,
+            self.exit,
+            (20, 20, 180, 80),
+            "tl"
+        ))
+
+        self.buttons.append(Button(
+            "clear",
+            fonts.main,
+            config.color_buttons,
+            self.clear,
+            (220, 20, 180, 80),
+            "tl"
+        ))
+
+        self.buttons.append(Button(
+            "start/stop",
+            fonts.main,
+            config.color_buttons,
+            self.start_stop,
+            (420, 20, 180, 80),
+            "tl"
+        ))
+
+        # Live buttons holds all the buttons that are available while the game is running
+        self.live_buttons = [self.buttons[2]]
+
+        # Running is an object variable, so all functions can access it
+        self.playing = False
+        self.running = False
+
+    def exit(self):
+        """
+        Simple abstraction of stopping the game object
+
+        :return: None
+        """
+
+        self.running = False
+
+    def clear(self):
+        """
+        Clear the map of marked cells
+
+        :return: None
+        """
+
+        self.map: np.ndarray = np.zeros((config.h, config.w), dtype="bool")
+        self.refresh_neighbors()
+        self.draw_new["all"] = True
+
+    def start_stop(self):
+        """
+        If game is running, stop it.
+        If game is not running, start it.
+
+        :return: None
+        """
+
+        if self.playing:
+            self.playing = False
+            self.animate_switch = False
+
+        else:
+            self.animate_switch = True
+            self.play()
+            self.animate_switch = False
 
     def get_neighbors(self, i: int, j: int) -> np.ndarray:
         """
@@ -142,8 +217,8 @@ class Game:
                     if self.map[i, j]:
                         # Define the rect to draw, taking into account the frame of animation
                         rect = (
-                            self.cw * j + 2 + ani_diff_w * (config.animate_count - n),
-                            self.ch * i + 2 + ani_diff_h * (config.animate_count - n),
+                            self.cw * j + 3 + ani_diff_w * (config.animate_count - n),
+                            self.ch * i + 3 + ani_diff_h * (config.animate_count - n),
                             self.cw - 3 - ani_diff_w * (config.animate_count - n) * 2,
                             self.ch - 3 - ani_diff_h * (config.animate_count - n) * 2
                         )
@@ -153,8 +228,8 @@ class Game:
                     else:
                         # Similarly define the rect, just the opposite of the expanding rect
                         rect = (
-                            self.cw * j + 2 + ani_diff_w * n,
-                            self.ch * i + 2 + ani_diff_h * n,
+                            self.cw * j + 3 + ani_diff_w * n,
+                            self.ch * i + 3 + ani_diff_h * n,
                             self.cw - 3 - ani_diff_w * n * 2,
                             self.ch - 3 - ani_diff_h * n * 2
                         )
@@ -163,6 +238,12 @@ class Game:
                         pygame.draw.rect(self.window.window, config.color_cell_dead, full_rect)
                         pygame.draw.rect(self.window.window, config.color_cell_alive, rect)
                         rects.append(full_rect)
+
+                # Detect overlap for the buttons, and correct by redrawing
+                if self.detect_overlap(rects):
+                    for button in self.buttons:
+                        button.render(self.window.window)
+                        rects.append(button)
 
                 # Update the rects that have been drawn to, then sync the framerate of the animation
                 self.window.update(rects)
@@ -181,6 +262,12 @@ class Game:
 
             rects.append(rect)
 
+        # Detect overlap for the buttons, and correct by redrawing
+        if self.detect_overlap(rects):
+            for button in self.buttons:
+                button.render(self.window.window)
+                rects.append(button)
+
         # Update part of the image, if "all" flag is on, update the whole
         if self.draw_new["all"]:
             self.window.update()
@@ -191,16 +278,30 @@ class Game:
         self.draw_new["all"] = False
         self.draw_new["cells"].clear()
 
+    def detect_overlap(self, rects):
+        """
+        This function is a botched solution to the animation overlapping the buttons.
+        It detects all whether a collision wil occur.
+
+        :return: Whether an overlap will occur
+        """
+
+        for rect in rects:
+            if rect[0] < 605 and rect[1] < 105:
+                return True
+
+        return False
+
     def play(self):
         """
         This function runs the game of life.
         :return: None
         """
 
-        running = True
+        self.playing = True
         self.render()
 
-        while running:
+        while self.playing:
             # update the game, sync the framerate and render the scene
             self.game_tick()
             self.clock.tick(config.game_speed)
@@ -211,7 +312,7 @@ class Game:
                 if event.type == pygame.KEYDOWN:
                     # If user presses escape, stop running the game
                     if event.key == pygame.K_ESCAPE:
-                        running = False
+                        self.start_stop()
 
                     # Increase the speed
                     elif event.key == pygame.K_UP:
@@ -230,6 +331,17 @@ class Game:
                         self.render()
                         self.animate_switch = True
 
+                # If the user has pressed mouse-button up
+                if event.type == pygame.MOUSEBUTTONUP:
+                    if event.button == 1:
+                        # Get the position of the cursor
+                        x, y = pygame.mouse.get_pos()
+
+                        # Iterate through buttons
+                        for button in self.live_buttons:
+                            if button.collidepoint(x, y):
+                                button.callback()
+
     # The main function that triggers when the game starts
     def run(self):
         """
@@ -238,9 +350,9 @@ class Game:
         :return: None
         """
 
-        running = True
+        self.running = True
 
-        while running:
+        while self.running:
             self.render()
 
             # Get the x and y position of the mouse, and calculate the indexes of the map
@@ -269,13 +381,11 @@ class Game:
                 if event.type == pygame.KEYDOWN:
                     # If the user has pressed escape, close the game
                     if event.key == pygame.K_ESCAPE:
-                        running = False
+                        self.exit()
 
                     # If the player has pressed r, run the game of life
                     elif event.key == pygame.K_r:
-                        self.animate_switch = True
-                        self.play()
-                        self.animate_switch = False
+                        self.start_stop()
 
                     # Increase the speed
                     elif event.key == pygame.K_UP:
@@ -287,6 +397,15 @@ class Game:
 
                     # If the player presses q, reload the map, thus wiping all cells
                     elif event.key == pygame.K_q:
-                        self.map: np.ndarray = np.zeros((config.h, config.w), dtype="bool")
-                        self.refresh_neighbors()
-                        self.draw_new["all"] = True
+                        self.clear()
+
+                # If the user has pressed mouse-button up
+                if event.type == pygame.MOUSEBUTTONUP:
+                    if event.button == 1:
+                        # Get the position of the cursor
+                        x, y = pygame.mouse.get_pos()
+
+                        # Iterate through buttons
+                        for button in self.buttons:
+                            if button.collidepoint(x, y):
+                                button.callback()

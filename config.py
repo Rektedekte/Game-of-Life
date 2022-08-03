@@ -105,7 +105,7 @@ class Config:
         }
 
         # Dump the content, pretty print style
-        with open("config.json", "w") as f:
+        with open("resources/config.json", "w") as f:
             json.dump(data, f, indent=4)
 
 

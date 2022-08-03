@@ -3,7 +3,6 @@ This file contains the menu UI. Just like Game it borrows a window object.
 """
 
 import pygame
-import json
 
 from game import Game
 from settings import Settings
@@ -61,6 +60,7 @@ class Menu:
         It uses the Surface.convert_alpha and pygame.SRCALPHA to create the transparent squares.
         :return: None
         """
+
         # Define the cell width and height
         self.cw = self.window.width // config.w
         self.ch = self.window.height // config.h
