@@ -4,6 +4,7 @@ This is a small file containing a class that simplifies creating and interacting
 
 import pygame
 from screeninfo import get_monitors
+from typing import Tuple
 
 
 class Window:
@@ -39,6 +40,47 @@ class Window:
     draw = pygame.draw
     set_caption = pygame.display.set_caption
     set_icon = pygame.display.set_icon
+
+    def scale_x(self, x: int) -> int:
+        """
+        Scale x coordinates relative to display width.
+
+        :param x: x coordinate to scale
+        :return: Scaled x coordinate
+        """
+
+        return int(x * (self.monitor.width / 1920))
+
+    def scale_y(self, y: int) -> int:
+        """
+        Scale y coordinates relative to display height.
+
+        :param y: y coordinate to scale
+        :return: Scaled y coordinate
+        """
+
+        return int(y * (self.monitor.height / 1080))
+
+    def scale_xy(self, x: int, y: int) -> Tuple[int, int]:
+        """
+        Scale x and y coordinates relative to display size.
+
+        :param x: x coordinate to scale
+        :param y: y coordinate to scale
+        :return: Scale coordinates
+        """
+
+        return self.scale_x(x), self.scale_y(y)
+
+    def scale_rect(self, rect: Tuple[int, int, int, int]) -> Tuple[int, int, int, int]:
+        """
+        Scale rect coordinates relative to display size.
+
+        :param rect: rect to scale
+        :return: The scaled rect
+        """
+
+        return self.scale_x(rect[0]), self.scale_y(rect[1]), self.scale_x(rect[2]), self.scale_y(rect[3])
 
     def resize(self, width: int = None, height: int = None, fullscreen: bool = True):
         """

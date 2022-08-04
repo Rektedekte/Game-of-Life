@@ -13,7 +13,7 @@ from ui_elements import Button, TextField, InputBox, Toggle, InputGroup
 class Settings:
     def __init__(self, window):
         self.window = window
-        self.window.resize(700, 900, False)
+        self.window.resize(int(self.window.scale_x(700)), int(self.window.scale_y(900)), False)
         self.window.set_caption("Settings - Game of Life")
         self.clock = pygame.time.Clock()
 
@@ -48,7 +48,7 @@ class Settings:
         )
 
         for text, i in zip(text_contents, range(len(text_contents))):
-            self.text_fields.append(TextField(text, pos=(20, i * 40 + 35), **text_default))
+            self.text_fields.append(TextField(text, pos=self.window.scale_xy(20, i * 40 + 35), **text_default))
 
         self.input_fields = []
         self._load_config()
@@ -60,7 +60,7 @@ class Settings:
             fonts.main,
             config.color_buttons,
             self.exit,
-            (60, 800, 180, 80),
+            self.window.scale_rect((60, 800, 180, 80)),
             "tl"
         ))
 
@@ -69,7 +69,7 @@ class Settings:
             fonts.main,
             config.color_buttons,
             self.save,
-            (260, 800, 180, 80),
+            self.window.scale_rect((260, 800, 180, 80)),
             "tl"
         ))
 
@@ -78,7 +78,7 @@ class Settings:
             fonts.main,
             config.color_buttons,
             self.reset,
-            (460, 800, 180, 80),
+            self.window.scale_rect((460, 800, 180, 80)),
             "tl"
         ))
 
@@ -107,7 +107,7 @@ class Settings:
             int,
             fonts.main,
             (240, 240, 240),
-            (680, 75, 100, 38),
+            self.window.scale_rect((680, 75, 100, 38)),
             "cr",
             text_color=config.color_buttons_text,
             border_color=config.color_buttons_border
@@ -118,7 +118,7 @@ class Settings:
             int,
             fonts.main,
             (240, 240, 240),
-            (680, 115, 100, 38),
+            self.window.scale_rect((680, 115, 100, 38)),
             "cr",
             text_color=config.color_buttons_text,
             border_color=config.color_buttons_border
@@ -129,7 +129,7 @@ class Settings:
             float,
             fonts.main,
             (240, 240, 240),
-            (680, 235, 100, 38),
+            self.window.scale_rect((680, 235, 100, 38)),
             "cr",
             text_color=config.color_buttons_text,
             border_color=config.color_buttons_border
@@ -138,7 +138,7 @@ class Settings:
         self.input_fields.append(Toggle(
             fonts.main,
             config.color_buttons_border,
-            (680, 275, 200, 38),
+            self.window.scale_rect((680, 275, 200, 38)),
             "cr",
             border_color=config.color_buttons_border,
             enabled=config.animate_master
@@ -149,7 +149,7 @@ class Settings:
             int,
             fonts.main,
             (240, 240, 240),
-            (680, 315, 100, 38),
+            self.window.scale_rect((680, 315, 100, 38)),
             "cr",
             text_color=config.color_buttons_text,
             border_color=config.color_buttons_border
@@ -160,7 +160,7 @@ class Settings:
             float,
             fonts.main,
             (240, 240, 240),
-            (680, 355, 100, 38),
+            self.window.scale_rect((680, 355, 100, 38)),
             "cr",
             text_color=config.color_buttons_text,
             border_color=config.color_buttons_border
@@ -171,7 +171,7 @@ class Settings:
             int,
             fonts.main,
             (240, 240, 240),
-            (680, 475, 244, 38),
+            self.window.scale_rect((680, 475, 244, 38)),
             "cr",
             padding=2,
             text_color=config.color_buttons_text,
@@ -183,7 +183,7 @@ class Settings:
             int,
             fonts.main,
             (240, 240, 240),
-            (680, 515, 244, 38),
+            self.window.scale_rect((680, 515, 244, 38)),
             "cr",
             padding=2,
             text_color=config.color_buttons_text,
@@ -195,7 +195,7 @@ class Settings:
             int,
             fonts.main,
             (240, 240, 240),
-            (680, 555, 244, 38),
+            self.window.scale_rect((680, 555, 244, 38)),
             "cr",
             padding=2,
             text_color=config.color_buttons_text,
@@ -207,7 +207,7 @@ class Settings:
             int,
             fonts.main,
             (240, 240, 240),
-            (680, 595, 244, 38),
+            self.window.scale_rect((680, 595, 244, 38)),
             "cr",
             padding=2,
             text_color=config.color_buttons_text,
@@ -219,7 +219,7 @@ class Settings:
             int,
             fonts.main,
             (240, 240, 240),
-            (680, 635, 244, 38),
+            self.window.scale_rect((680, 635, 244, 38)),
             "cr",
             padding=2,
             text_color=config.color_buttons_text,
@@ -231,7 +231,7 @@ class Settings:
             int,
             fonts.main,
             (240, 240, 240),
-            (680, 675, 244, 38),
+            self.window.scale_rect((680, 675, 244, 38)),
             "cr",
             padding=2,
             text_color=config.color_buttons_text,
@@ -243,7 +243,7 @@ class Settings:
             int,
             fonts.main,
             (240, 240, 240),
-            (680, 715, 244, 38),
+            self.window.scale_rect((680, 715, 244, 38)),
             "cr",
             padding=2,
             text_color=config.color_buttons_text,
@@ -255,7 +255,7 @@ class Settings:
             int,
             fonts.main,
             (240, 240, 240),
-            (680, 755, 244, 38),
+            self.window.scale_rect((680, 755, 244, 38)),
             "cr",
             padding=2,
             text_color=config.color_buttons_text,

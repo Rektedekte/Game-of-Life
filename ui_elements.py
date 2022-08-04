@@ -1,5 +1,5 @@
 import pygame
-from typing import Tuple
+from typing import Tuple, Callable, Union, Iterable
 
 
 def align(rect: pygame.Rect, alignment: str):
@@ -164,7 +164,7 @@ class Toggle(pygame.Rect):
         if self.enabled:
             self.enable()
 
-    def collidepoint(self, x: float, y: float):
+    def collidepoint(self, x: float, y: float) -> bool:
         """
         This function acts as a medium between the toggle and the boolean buttons,
         when it comes to detecting inputs.
@@ -416,7 +416,7 @@ class InputGroup(pygame.Rect):
                 self.text_color
             ))
 
-    def collidepoint(self, x: float, y: float):
+    def collidepoint(self, x: float, y: float) -> Union[Callable, bool]:
         """
         This function acts as a medium between the group and the inputboxes,
         when it comes to detecting inputs.
@@ -516,7 +516,7 @@ class InputBox(pygame.Rect):
         # Align the box, according to input
         align(self, alignment)
 
-    def collidepoint(self, x: float, y: float):
+    def collidepoint(self, x: float, y: float) -> Union[Callable, bool]:
         """
         This function overwrites the collidepoint function,
         allowing us to return the send_keys function when pressed.
@@ -547,7 +547,7 @@ class InputBox(pygame.Rect):
         return self.content_type(self.text)
 
     # noinspection PyTypeChecker
-    def check(self):
+    def check(self) -> bool:
         """
         This function chooses the correct checker, then returns the result
         :return: The validity as a bool
@@ -555,7 +555,7 @@ class InputBox(pygame.Rect):
 
         return InputBox.checks[self.content_type](self)
 
-    def check_int(self):
+    def check_int(self) -> bool:
         """
         Check whether the text content is valid for int type
         :return: The validity as a bool
@@ -568,7 +568,7 @@ class InputBox(pygame.Rect):
 
         return self.lower <= int(self.text) <= self.upper
 
-    def check_float(self):
+    def check_float(self) -> bool:
         """
         Check whether the text content is valid for float type
         :return: The validity as a bool
@@ -588,7 +588,7 @@ class InputBox(pygame.Rect):
         float: check_float
     }
 
-    def send_keys(self, *keys):
+    def send_keys(self, *keys: Iterable[Union[str, int, bool]]):
         """
         This function takes *args of keys, and interprets them, changing the text based on it.
         :param keys: A packed tuple of key inputs to interpret
@@ -606,7 +606,7 @@ class InputBox(pygame.Rect):
                     if self.text == "":
                         self.text = "0"
 
-                return True
+                return
 
             # If the used has pressed backspace
             if key == pygame.K_BACKSPACE:

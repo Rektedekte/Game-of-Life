@@ -8,6 +8,7 @@ import numpy as np
 from config import config
 from ui_elements import Button
 import fonts
+from typing import Tuple, Iterable
 
 
 class Game:
@@ -52,7 +53,7 @@ class Game:
             fonts.main,
             config.color_buttons,
             self.exit,
-            (20, 20, 180, 80),
+            self.window.scale_rect((20, 20, 180, 80)),
             "tl"
         ))
 
@@ -61,7 +62,7 @@ class Game:
             fonts.main,
             config.color_buttons,
             self.clear,
-            (220, 20, 180, 80),
+            self.window.scale_rect((220, 20, 180, 80)),
             "tl"
         ))
 
@@ -70,7 +71,7 @@ class Game:
             fonts.main,
             config.color_buttons,
             self.start,
-            (420, 20, 180, 80),
+            self.window.scale_rect((420, 20, 180, 80)),
             "tl"
         ))
 
@@ -79,7 +80,7 @@ class Game:
             fonts.main,
             config.color_buttons,
             self.stop,
-            (620, 20, 180, 80),
+            self.window.scale_rect((620, 20, 180, 80)),
             "tl"
         ))
 
@@ -88,7 +89,7 @@ class Game:
             fonts.main,
             config.color_buttons,
             self.speed_up,
-            (self.window.width - 20, 20, 180, 80),
+            self.window.scale_rect((1900, 20, 180, 80)),
             "tr"
         ))
 
@@ -97,7 +98,7 @@ class Game:
             fonts.main,
             config.color_buttons,
             self.speed_down,
-            (self.window.width - 220, 20, 180, 80),
+            self.window.scale_rect((1700, 20, 180, 80)),
             "tr"
         ))
 
@@ -316,7 +317,7 @@ class Game:
         self.draw_new["all"] = False
         self.draw_new["cells"].clear()
 
-    def detect_overlap(self, rects):
+    def detect_overlap(self, rects: Iterable[Tuple[int, int, int, int]]) -> bool:
         """
         This function is a botched solution to the animation overlapping the buttons.
         It detects all whether a collision wil occur.
@@ -324,9 +325,13 @@ class Game:
         :return: Whether an overlap will occur
         """
 
-        return any(rect[1] < 105 and (rect[0] < 805 or rect[0] + rect[2] > 1515) for rect in rects)
+        return any(
+            rect[1] < self.window.scale_y(105) and
+            (rect[0] < self.window.scale_x(805) or rect[0] + rect[2] > self.window.scale_x(1515))
+            for rect in rects
+        )
 
-    def on_buttons(self, x, y):
+    def on_buttons(self, x: int, y: int) -> bool:
         """
         Detect whether the coordinates are on top of any buttons.
 

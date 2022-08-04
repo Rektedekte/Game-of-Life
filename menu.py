@@ -37,7 +37,7 @@ class Menu:
             fonts.main,
             config.color_buttons,
             self.play,
-            (self.window.width // 2, self.window.height // 2 - 140, 300, 120),
+            self.window.scale_rect((960, 540 - 140, 300, 120)),
             "cc",
             text_color=config.color_buttons_text,
             border_color=config.color_buttons_border
@@ -48,7 +48,7 @@ class Menu:
             fonts.main,
             config.color_buttons,
             self.settings,
-            (self.window.width // 2, self.window.height // 2, 300, 120),
+            self.window.scale_rect((960, 540, 300, 120)),
             "cc",
             text_color=config.color_buttons_text,
             border_color=config.color_buttons_border
@@ -59,7 +59,7 @@ class Menu:
             fonts.main,
             config.color_buttons,
             self.exit,
-            (self.window.width // 2, self.window.height // 2 + 140, 300, 120),
+            self.window.scale_rect((960, 540 + 140, 300, 120)),
             "cc",
             text_color=config.color_buttons_text,
             border_color=config.color_buttons_border
@@ -146,6 +146,7 @@ class Menu:
     def run(self):
         """
         Run the menu itself.
+
         :return: None
         """
 
