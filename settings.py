@@ -61,7 +61,9 @@ class Settings:
             config.color_buttons,
             self.exit,
             self.window.scale_rect((60, 800, 180, 80)),
-            "tl"
+            "tl",
+            text_color=config.color_buttons_text,
+            border_color=config.color_buttons_border
         ))
 
         self.buttons.append(Button(
@@ -70,7 +72,9 @@ class Settings:
             config.color_buttons,
             self.save,
             self.window.scale_rect((260, 800, 180, 80)),
-            "tl"
+            "tl",
+            text_color=config.color_buttons_text,
+            border_color=config.color_buttons_border
         ))
 
         self.buttons.append(Button(
@@ -79,7 +83,9 @@ class Settings:
             config.color_buttons,
             self.reset,
             self.window.scale_rect((460, 800, 180, 80)),
-            "tl"
+            "tl",
+            text_color=config.color_buttons_text,
+            border_color=config.color_buttons_border
         ))
 
         # Send keys refers to the function that takes keys in the activated input field
