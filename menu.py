@@ -30,28 +30,42 @@ class Menu:
         # Create the grid surface used in rendering the menu
         self.create_grid()
 
-        # Initialize the custom button, derived from a pygame.Rect
-        self.play_button = Button(
+        self.buttons = []
+
+        self.buttons.append(Button(
             "Play",
             fonts.main,
             config.color_buttons,
             self.play,
-            (self.window.width // 2, self.window.height // 2 - 80, 300, 120),
+            (self.window.width // 2, self.window.height // 2 - 140, 300, 120),
             "cc",
             text_color=config.color_buttons_text,
             border_color=config.color_buttons_border
-        )
+        ))
 
-        self.settings_button = Button(
+        self.buttons.append(Button(
             "Settings",
             fonts.main,
             config.color_buttons,
             self.settings,
-            (self.window.width // 2, self.window.height // 2 + 80, 300, 120),
+            (self.window.width // 2, self.window.height // 2, 300, 120),
             "cc",
             text_color=config.color_buttons_text,
             border_color=config.color_buttons_border
-        )
+        ))
+
+        self.buttons.append(Button(
+            "Exit",
+            fonts.main,
+            config.color_buttons,
+            self.exit,
+            (self.window.width // 2, self.window.height // 2 + 140, 300, 120),
+            "cc",
+            text_color=config.color_buttons_text,
+            border_color=config.color_buttons_border
+        ))
+
+        self.running = False
 
     # noinspection PyAttributeOutsideInit
     def create_grid(self):
@@ -85,8 +99,8 @@ class Menu:
         # Draw the grid on the screen
         self.window.blit(self.grid, (0, 0))
 
-        self.play_button.render(self.window.window)
-        self.settings_button.render(self.window.window)
+        for button in self.buttons:
+            button.render(self.window.window)
 
         # Update the entire scene, as this is a close to one-time call
         self.window.update()
@@ -120,6 +134,15 @@ class Menu:
         # Render the scene once again, to overwrite the games rendering
         self.render()
 
+    def exit(self):
+        """
+        Exit the menu to desktop.
+
+        :return: None
+        """
+
+        self.running = False
+
     def run(self):
         """
         Run the menu itself.
@@ -128,15 +151,15 @@ class Menu:
 
         # Render the menu once at the start
         self.render()
-        running = True
+        self.running = True
 
-        while running:
+        while self.running:
             # Get the events that pygame has collected
             for event in pygame.event.get():
                 # If the user has pressed escape, exit to the previous level
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
-                        running = False
+                        self.exit()
 
                 # If the user has pressed mouse-button up
                 elif event.type == pygame.MOUSEBUTTONUP:
@@ -144,15 +167,9 @@ class Menu:
                         # Get the position of the cursor
                         x, y = pygame.mouse.get_pos()
 
-                        # Check if the cursor collides with the button
-                        if self.play_button.collidepoint(x, y):
-                            # Call the buttons callback
-                            # I would like to have the callbacks handled differently, but couldn't come up with anything
-                            self.play_button.callback()
+                        # Iterate through buttons, and check for collision
+                        for button in self.buttons:
+                            if button.collidepoint(x, y):
+                                button.callback()
 
-                        # Check if the cursor collides with the settings button
-                        if self.settings_button.collidepoint(x, y):
-                            # Call the buttons callback
-                            self.settings_button.callback()
-
-            self.clock.tick(60)
+            self.clock.tick(24)

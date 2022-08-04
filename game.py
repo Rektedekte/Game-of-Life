@@ -36,6 +36,9 @@ class Game:
         # Create the grid used to split the cells visually
         self.create_grid()
 
+        # Use a local game speed variable so we can update it without affecting the config
+        self.game_speed = config.game_speed
+
         # A variable that stores information about what to render, used by the render function
         self.draw_new = {
             "all": True,  # Flag to draw everything, is initially on for first render
@@ -63,16 +66,43 @@ class Game:
         ))
 
         self.buttons.append(Button(
-            "start/stop",
+            "start",
             fonts.main,
             config.color_buttons,
-            self.start_stop,
+            self.start,
             (420, 20, 180, 80),
             "tl"
         ))
 
+        self.buttons.append(Button(
+            "stop",
+            fonts.main,
+            config.color_buttons,
+            self.stop,
+            (620, 20, 180, 80),
+            "tl"
+        ))
+
+        self.buttons.append(Button(
+            "Speed+",
+            fonts.main,
+            config.color_buttons,
+            self.speed_up,
+            (self.window.width - 20, 20, 180, 80),
+            "tr"
+        ))
+
+        self.buttons.append(Button(
+            "Speed-",
+            fonts.main,
+            config.color_buttons,
+            self.speed_down,
+            (self.window.width - 220, 20, 180, 80),
+            "tr"
+        ))
+
         # Live buttons holds all the buttons that are available while the game is running
-        self.live_buttons = [self.buttons[2]]
+        self.live_buttons = self.buttons[3:6]
 
         # Running is an object variable, so all functions can access it
         self.playing = False
@@ -98,22 +128,32 @@ class Game:
         self.refresh_neighbors()
         self.draw_new["all"] = True
 
-    def start_stop(self):
+    def start(self):
         """
-        If game is running, stop it.
-        If game is not running, start it.
+        Start the game
 
         :return: None
         """
 
-        if self.playing:
-            self.playing = False
-            self.animate_switch = False
+        self.animate_switch = True
+        self.play()
+        self.animate_switch = False
 
-        else:
-            self.animate_switch = True
-            self.play()
-            self.animate_switch = False
+    def stop(self):
+        """
+        Stop the game
+
+        :return: None
+        """
+
+        self.playing = False
+        self.animate_switch = False
+
+    def speed_up(self):
+        self.game_speed *= 1.1
+
+    def speed_down(self):
+        self.game_speed /= 1.1
 
     def get_neighbors(self, i: int, j: int) -> np.ndarray:
         """
@@ -202,7 +242,6 @@ class Game:
         ani_diff_w = (self.cw - 3) / config.animate_count / 2
         ani_diff_h = (self.ch - 3) / config.animate_count / 2
 
-
         # If animating is enabled, animate the cells dying and reproducing
         if self.animate_switch and config.animate_master:
             # Split the rendering into self.ani_count steps
@@ -246,7 +285,7 @@ class Game:
 
                 # Update the rects that have been drawn to, then sync the framerate of the animation
                 self.window.update(rects)
-                self.animate_clock.tick(config.game_speed * config.animate_count * config.animate_speed)
+                self.animate_clock.tick(self.game_speed * config.animate_count * config.animate_speed)
 
         rects = []
 
@@ -285,11 +324,18 @@ class Game:
         :return: Whether an overlap will occur
         """
 
-        for rect in rects:
-            if rect[0] < 605 and rect[1] < 105:
-                return True
+        return any(rect[1] < 105 and (rect[0] < 805 or rect[0] + rect[2] > 1515) for rect in rects)
 
-        return False
+    def on_buttons(self, x, y):
+        """
+        Detect whether the coordinates are on top of any buttons.
+
+        :param x: x coordinate in pixels
+        :param y: y coordinate in pixels
+        :return: Whether the coords are on top of any buttons
+        """
+
+        return any(button.collidepoint(x, y) for button in self.buttons)
 
     def play(self):
         """
@@ -303,7 +349,7 @@ class Game:
         while self.playing:
             # update the game, sync the framerate and render the scene
             self.game_tick()
-            self.clock.tick(config.game_speed)
+            self.clock.tick(self.game_speed)
             self.render()
 
             # Iterate through the events pygame collected
@@ -311,15 +357,15 @@ class Game:
                 if event.type == pygame.KEYDOWN:
                     # If user presses escape, stop running the game
                     if event.key == pygame.K_ESCAPE:
-                        self.start_stop()
+                        self.stop()
 
                     # Increase the speed
                     elif event.key == pygame.K_UP:
-                        config.game_speed *= 1.1
+                        self.speed_up()
 
                     # Decrease the speed
                     elif event.key == pygame.K_DOWN:
-                        config.game_speed /= 1.1
+                        self.speed_down()
 
                     # Jump one frame forward
                     elif event.key == pygame.K_RIGHT:
@@ -354,27 +400,6 @@ class Game:
         while self.running:
             self.render()
 
-            # Get the x and y position of the mouse, and calculate the indexes of the map
-            x, y = pygame.mouse.get_pos()
-            buttons = pygame.mouse.get_pressed()
-
-            i = y // self.ch
-            j = x // self.cw
-
-            # Only continue if the mouse is inside the map
-            if 0 <= i < config.h and 0 <= j < config.w:
-                # If left mouse-button has been pressed, mark the cell as alive
-                if buttons[0]:
-                    if not self.map[i, j]:
-                        self.map[i, j] = 1
-                        self.draw_new["cells"].append((i, j))
-
-                # If right mouse-button has been pressed, mark the cell as dead
-                elif buttons[2]:
-                    if self.map[i, j]:
-                        self.map[i, j] = 0
-                        self.draw_new["cells"].append((i, j))
-
             # Iterate through the event pygame has collected
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
@@ -384,15 +409,15 @@ class Game:
 
                     # If the player has pressed r, run the game of life
                     elif event.key == pygame.K_r:
-                        self.start_stop()
+                        self.start()
 
                     # Increase the speed
                     elif event.key == pygame.K_UP:
-                        config.game_speed *= 1.1
+                        self.speed_up()
 
                     # Decrease the speed
                     elif event.key == pygame.K_DOWN:
-                        config.game_speed /= 1.1
+                        self.speed_down()
 
                     # If the player presses q, reload the map, thus wiping all cells
                     elif event.key == pygame.K_q:
@@ -408,3 +433,27 @@ class Game:
                         for button in self.buttons:
                             if button.collidepoint(x, y):
                                 button.callback()
+
+            # Get the x and y position of the mouse, and calculate the indexes of the map
+            x, y = pygame.mouse.get_pos()
+
+            # We need to check and make sure, that the cursor isn't on top of the buttons
+            if not self.on_buttons(x, y):
+                buttons = pygame.mouse.get_pressed()
+
+                i = y // self.ch
+                j = x // self.cw
+
+                # Only continue if the mouse is inside the map
+                if 0 <= i < config.h and 0 <= j < config.w:
+                    # If left mouse-button has been pressed, mark the cell as alive
+                    if buttons[0]:
+                        if not self.map[i, j]:
+                            self.map[i, j] = 1
+                            self.draw_new["cells"].append((i, j))
+
+                    # If right mouse-button has been pressed, mark the cell as dead
+                    elif buttons[2]:
+                        if self.map[i, j]:
+                            self.map[i, j] = 0
+                            self.draw_new["cells"].append((i, j))
